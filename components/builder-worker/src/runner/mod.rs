@@ -315,6 +315,11 @@ impl Runner {
         self.check_cancel(tx).await?;
         let mut section = streamer.start_section(Section::PublishPackage)?;
 
+        if env::var_os("HAB_FUNC_TEST").is_some() {
+            section.end()?;
+            return Ok(())
+        }
+
         match post_process(&mut archive,
                            &self.workspace,
                            &self.config,
@@ -399,6 +404,23 @@ impl Runner {
     async fn fetch_origin_secret_key(
         &self)
         -> std::result::Result<std::path::PathBuf, builder_core::Error> {
+        if env::var_os("HAB_FUNC_TEST").is_some() {
+            let test_key = "bobo".to_string();
+            let res =
+                self.depot_cli
+                    .fetch_origin_secret_key(self.job().origin(),
+                                             &test_key,
+                                             self.workspace.key_path())
+                    .await;
+            if res.is_err() {
+                debug!("Failed to fetch origin secret key, err={:?}, path={:?}",
+                       res,
+                       self.workspace.key_path());
+            };
+
+            return res;
+        }
+
         let res = self.depot_cli
                       .fetch_origin_secret_key(self.job().origin(),
                                                &self.bldr_token,
