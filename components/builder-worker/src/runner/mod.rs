@@ -317,7 +317,7 @@ impl Runner {
 
         if env::var_os("HAB_FUNC_TEST").is_some() {
             section.end()?;
-            return Ok(())
+            return Ok(());
         }
 
         match post_process(&mut archive,
